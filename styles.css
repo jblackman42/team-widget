@@ -10,6 +10,16 @@ team-widget {
   width: max-content;
   margin-inline: auto;
 }
+@media screen and (max-width: 768px) {
+  team-widget {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media screen and (max-width: 525px) {
+  team-widget {
+    grid-template-columns: 1fr;
+  }
+}
 
 .staff-member {
   display: flex;
@@ -26,6 +36,7 @@ team-widget {
   border-radius: 50%;
   overflow: hidden;
   margin-inline: auto;
+  margin-top: 1rem;
   padding: 2px;
   border: 10px solid #7b2d26;
   flex-shrink: 0;
@@ -80,10 +91,29 @@ team-widget {
   inset: 0;
   z-index: 999999;
   background-color: rgba(0, 0, 0, 0.8);
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   display: none;
   visibility: hidden;
+}
+.email-form-container .form-header {
+  background-color: white;
+  width: 90vw;
+  max-width: 800px;
+  border-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  height: 32px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.email-form-container .form-header button {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
 }
 .email-form-container form {
   display: flex;
@@ -92,17 +122,28 @@ team-widget {
   width: 90vw;
   max-width: 800px;
   border-radius: 8px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-sizing: border-box;
   padding: 2rem;
   padding-top: 0;
 }
 .email-form-container form h1 {
   text-align: center;
   margin: 2rem 0;
+  margin-top: 0.5rem;
+}
+.email-form-container form h3, .email-form-container form p {
+  margin: 0.5rem 0;
+  text-align: center;
 }
 .email-form-container form .form-input {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+.email-form-container form .form-input:last-of-type textarea, .email-form-container form .form-input:last-of-type input {
+  margin-bottom: 0;
 }
 .email-form-container form .form-input label {
   font-weight: bold;
@@ -128,6 +169,12 @@ team-widget {
 .email-form-container form .form-input textarea {
   height: 100px;
 }
+.email-form-container form .error-msg {
+  font-weight: bold;
+  text-align: center;
+  color: #e74c3c;
+  margin: 1rem 0;
+}
 .email-form-container form button {
   margin-left: auto;
   padding: 0.5rem 1rem;
@@ -148,6 +195,8 @@ team-widget {
   font-size: clamp(1rem, 6vw, 2rem);
   display: grid;
   place-items: center;
+  visibility: hidden;
+  display: none;
   z-index: 9999999;
 }
 
