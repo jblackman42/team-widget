@@ -7,7 +7,6 @@ class TeamWidget extends HTMLElement {
     update = async () => {
         const contact_ids = JSON.parse(this.getAttribute('contacts'))
         this.staff = await this.getStaff(contact_ids);
-
         
         const loadingDOM = document.createElement('div')
             loadingDOM.id = 'loadingScreen';
@@ -16,7 +15,8 @@ class TeamWidget extends HTMLElement {
             loadingDOM.appendChild(loaderDOM)
         
         for (let i = 0; i < this.staff.length; i ++) {
-            const {Display_Name, Last_Name, Nickname, Job_Title, Image_URL, Contact_ID} = this.staff[i];
+            const currStaff = this.staff.filter(staff => staff.Contact_ID == contact_ids[i])[0]
+            const {Last_Name, Nickname, Job_Title, Image_URL, Contact_ID, Bio} = currStaff;
 
             const staffMemberDOM = document.createElement('div');
                 staffMemberDOM.classList.add('staff-member');
@@ -27,7 +27,8 @@ class TeamWidget extends HTMLElement {
             staffMemberDOM.innerHTML = `
                 <div class="staff-member">
                     <div class="image-container">
-                        <img src="${Image_URL}" alt="${Display_Name}">
+                        <img src="${Image_URL}" alt="${Nickname}, ${Last_Name}" title="${Contact_ID}">
+                        ${Bio ? `<button class="more-info" id="info-${Contact_ID}" title="More Info"><i class='fas fa-info'></i></button>` : ''}
                     </div>
                     <div class="staff-content">
                         <h1>${Nickname} ${Last_Name}</h1>
@@ -62,8 +63,13 @@ class TeamWidget extends HTMLElement {
             const emailBtn = document.getElementById(`btn-${Contact_ID}`);
                 emailBtn.onclick = () => this.openEmailForm(Contact_ID);
 
+            if (Bio) {
+                const moreInfoBtn = document.getElementById(`info-${Contact_ID}`);
+                    moreInfoBtn.onclick = () => this.showStaffBio(Contact_ID);
+            }
+
             const closeBtn = document.getElementById(`close-${Contact_ID}`);
-            closeBtn.onclick = () => this.closeEmailForm(Contact_ID);
+                closeBtn.onclick = () => this.closeEmailForm(Contact_ID);
 
             const formDOM = document.getElementById(`form-${Contact_ID}`);
                 formDOM.addEventListener('submit', (e) => {
@@ -79,7 +85,7 @@ class TeamWidget extends HTMLElement {
     getStaff = async (ids) => {
         return await axios({
             method: 'post',
-            url: 'http://localhost:3000/api/widgets/staff',
+            url: 'https://phc.events/api/widgets/staff',
             data: {
                 ids: ids
             }
@@ -88,6 +94,7 @@ class TeamWidget extends HTMLElement {
     }
     
     openEmailForm = (id) => {
+        this.hideStaffBio();
         this.closeAllForms();
         const formDOM = document.getElementById(`form-${id}`);
             formDOM.style.display = 'flex';
@@ -106,6 +113,41 @@ class TeamWidget extends HTMLElement {
             form.style.display = 'none';
             form.style.visibility = 'hidden';
         })
+    }
+
+    showStaffBio = (id) => {
+        if (document.querySelector('#staff-popup-container')) return;
+
+        const currStaff = this.staff.filter(staff => staff.Contact_ID == id)[0];
+
+        const staffPopupContainer = document.createElement('div');
+        staffPopupContainer.id = 'staff-popup-container';
+
+        staffPopupContainer.innerHTML = `
+            <div id="staff-popup">
+                <button class="close-btn" onclick="hideStaffPopup()"><i class="material-icons">close</i></button>
+                <div class="image-container">
+                    <img src="${currStaff.Image_URL}" />
+                </div>
+                <div class="bio-info">
+                    <h1 class="bio-name">${currStaff.Display_Name}</h1>
+                    <h3 class="bio-title">${currStaff.Job_Title}</h3>
+                    <p class="bio-content">${currStaff.Bio}</p>
+                    <button id="bio-email-btn-${currStaff.Contact_ID}" class="btn">Email ${currStaff.Nickname}</button>
+                </div>
+            </div>
+        `
+        document.body.appendChild(staffPopupContainer)
+
+        const closeBtnDOM = document.querySelector('.close-btn');
+            closeBtnDOM.onclick = this.hideStaffBio;
+
+        const bioEmailBtnDOM = document.querySelector(`#bio-email-btn-${currStaff.Contact_ID}`);
+        bioEmailBtnDOM.onclick = () => this.openEmailForm(currStaff.Contact_ID);
+    }
+    hideStaffBio = () => {
+        const staffPopupContainer = document.querySelector('#staff-popup-container');
+        if (staffPopupContainer) document.body.removeChild(staffPopupContainer);
     }
 
     sendEmail = async (id, name, email, message) => {
