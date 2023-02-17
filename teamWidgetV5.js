@@ -7,6 +7,8 @@ class TeamWidget extends HTMLElement {
     update = async () => {
         const contact_ids = JSON.parse(this.getAttribute('contacts'))
         this.staff = await this.getStaff(contact_ids);
+
+        console.log(this.staff)
         
         const loadingDOM = document.createElement('div')
             loadingDOM.id = 'loadingScreen';
@@ -16,7 +18,11 @@ class TeamWidget extends HTMLElement {
         
         for (let i = 0; i < this.staff.length; i ++) {
             const currStaff = this.staff.filter(staff => staff.Contact_ID == contact_ids[i])[0]
-            const {Last_Name, Nickname, Job_Title, Image_URL, Contact_ID, Bio} = currStaff;
+            if (!currStaff) {
+                console.error('Invalid Contact ID Found at Index ' + i);
+                continue
+            };
+            const {Last_Name, Nickname, Job_Title, Unique_Name, Contact_ID, Bio} = currStaff;
 
             const staffMemberDOM = document.createElement('div');
                 staffMemberDOM.classList.add('staff-member');
@@ -27,7 +33,7 @@ class TeamWidget extends HTMLElement {
             staffMemberDOM.innerHTML = `
                 <div class="staff-member">
                     <div class="image-container">
-                        <img src="${Image_URL}" alt="${Nickname}, ${Last_Name}" title="${Contact_ID}">
+                        <img src="https://my.pureheart.org/ministryplatformapi/files/${Unique_Name}" alt="${Nickname}, ${Last_Name}" title="${Contact_ID}">
                         ${Bio ? `<button class="more-info" id="info-${Contact_ID}" title="More Info"><i class='fas fa-info'></i></button>` : ''}
                     </div>
                     <div class="staff-content">
@@ -87,10 +93,11 @@ class TeamWidget extends HTMLElement {
             method: 'post',
             url: 'https://phc.events/api/widgets/staff',
             data: {
-                ids: ids
+                Contact_ID_List: ids.join()
             }
         })
-            .then(response => response.data.staff);
+            .then(response => response.data)
+            .catch(err => null)
     }
     
     openEmailForm = (id) => {
@@ -130,7 +137,7 @@ class TeamWidget extends HTMLElement {
                     <img src="${currStaff.Image_URL}" />
                 </div>
                 <div class="bio-info">
-                    <h1 class="bio-name">${currStaff.Display_Name}</h1>
+                    <h1 class="bio-name">${currStaff.Nickname} ${currStaff.Last_Name}</h1>
                     <h3 class="bio-title">${currStaff.Job_Title}</h3>
                     <p class="bio-content">${currStaff.Bio}</p>
                     <button id="bio-email-btn-${currStaff.Contact_ID}" class="btn">Email ${currStaff.Nickname}</button>
